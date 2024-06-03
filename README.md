@@ -44,10 +44,12 @@ Thousands of smaller simpler cores, fit for parallel processing.
 Uses high-bandwidth memory to quickly handle large datasets required for rendering and computation (unlike CPUs which have access to cache memory).
 Memory types in GPU:
 
-
-
 GPU manufacturers:
 1. Nvidia
 2. AMD
 
 CUDA is a software from Nvidia that allows you to choose where exactly (memory location) you want to store a particular something in your GPU. It provides full control over you GPU.
+
+GTX and RTX graphic cards (by NVIDIA):
+GTX series- aimed at graphics for gaming. Limitations arise in fields of data science and machine learning due to less VRAM.
+RTX GPUs often feature more CUDA cores and Tensor cores compared to GTX GPUs. Tensor cores, in particular, are essential for accelerating AI and deep learning tasks. They perform mixed-precision matrix multiplication, significantly speeding up training times for large neural networks.
