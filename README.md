@@ -1,6 +1,7 @@
 # Internship
 
 CPU Vs GPU
+(mostly used chatgpt and quoted parts of previous answers to ask more detailed explanations, occasionally googled)
 
 CPU: Central Processing Unit
 
@@ -28,6 +29,7 @@ Register.
 RAM stands for random access memory. Any file or application actively in use on a computer is stored in RAM primary memory. 
 Cache is a smaller memory configuration reserved from main memory to make computer operations more efficient.
 Both RAM and Cache affect latency and clock speeds.
+https://www.lenovo.com/in/en/glossary/computer-memory/?orgRef=https%253A%252F%252Fwww.google.com%252F
 
 
 GPU: Graphic Processing Unit
@@ -43,6 +45,7 @@ Thousands of smaller simpler cores, fit for parallel processing.
 
 Uses high-bandwidth memory to quickly handle large datasets required for rendering and computation (unlike CPUs which have access to cache memory).
 Memory types in GPU:
+https://giahuy04.medium.com/memory-types-in-gpu-6373b7a0ca47#:~:text=Global%20memory%20(also%20known%20as,in%20terms%20of%20access%20latency.
 
 GPU manufacturers:
 1. Nvidia
@@ -51,5 +54,7 @@ GPU manufacturers:
 CUDA is a software from Nvidia that allows you to choose where exactly (memory location) you want to store a particular something in your GPU. It provides full control over you GPU.
 
 GTX and RTX graphic cards (by NVIDIA):
+https://www.nvidia.com/en-in/geforce/graphics-cards/
+https://www.analyticsvidhya.com/blog/2023/09/gtx-vs-rtx/#:~:text=While%20GTX%20GPUs%20can%20provide,choice%20for%20many%20data%20scientists.
 GTX series- aimed at graphics for gaming. Limitations arise in fields of data science and machine learning due to less VRAM.
 RTX GPUs often feature more CUDA cores and Tensor cores compared to GTX GPUs. Tensor cores, in particular, are essential for accelerating AI and deep learning tasks. They perform mixed-precision matrix multiplication, significantly speeding up training times for large neural networks.
