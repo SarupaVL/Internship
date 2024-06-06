@@ -3,16 +3,15 @@ from diffusers import StableDiffusionPipeline
 import torch
 from datetime import datetime
 
-# Load the pre-trained Stable Diffusion model
-model_id = "CompVis/stable-diffusion-v1-4"
+# Load the pre-trained Stable Diffusion model once at startup
+model_id = "runwayml/stable-diffusion-v1-5"  # Use the correct model ID for Stable Diffusion 1.5
 device = "cpu"  # Use CPU
-
 pipe = StableDiffusionPipeline.from_pretrained(model_id)
 pipe = pipe.to(device)
 
 def generate_image(prompt):
     # Generate an image
-    image = pipe(prompt).images[0]
+    image = pipe(prompt, num_inference_steps=20, guidance_scale=7.5).images[0]
     
     # Generate output file path with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -29,9 +28,9 @@ iface = gr.Interface(
     inputs="text",
     outputs="image",
     title="Text-to-Image Generation",
-    description="Enter a text prompt to generate an image using Stable Diffusion.",
+    description="Enter a text prompt to generate an image using Stable Diffusion 1.5.",
 )
 
 # Launch the web application
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()
