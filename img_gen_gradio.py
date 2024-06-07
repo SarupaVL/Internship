@@ -1,46 +1,43 @@
 import gradio as gr
 from diffusers import StableDiffusionPipeline
-from datetime import datetime
-from PIL import Image
 import torch
-from realesrgan import RealESRGAN
+from datetime import datetime
 
-# Load the pre-trained Stable Diffusion model once at startup
-model_id = "runwayml/stable-diffusion-v1-5"  # Use the correct model ID for Stable Diffusion 1.5
+# Load the pre-trained Stable Diffusion model
+model_id = "CompVis/stable-diffusion-v1-4"
 device = "cpu"  # Use CPU
 
 pipe = StableDiffusionPipeline.from_pretrained(model_id)
 pipe = pipe.to(device)
 
-# Load the Real-ESRGAN model for upscaling
-upscale_model = RealESRGAN(device, scale=4)  # Using scale 4x for upscaling
-upscale_model.load_weights("RealESRGAN_x4plus.pth")  # Ensure you have the model weights
-
-def generate_image(prompt):
-    # Generate an image
-    image = pipe(prompt, num_inference_steps=20, guidance_scale=7.5).images[0]
-    
-    # Upscale the generated image
-    upscaled_image = upscale_model.predict(image)
-    
-    # Generate output file path with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f"generated_image_{timestamp}.png"
-
-    # Save the upscaled image
-    upscaled_image.save(output_path)
-    
-    return upscaled_image
+def generate_image(prompt, cycles):
+    images = []
+    for cycle in range(cycles):
+        # Generate an image
+        image = pipe(prompt).images[0]
+        
+        # Generate output file path with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = f"generated_image_{timestamp}_{cycle}.png"
+        
+        # Save the generated image
+        image.save(output_path)
+        
+        images.append(image)
+        yield images  # Update the interface in real-time
 
 # Create Gradio interface
 iface = gr.Interface(
     fn=generate_image,
-    inputs="text",
-    outputs="image",
+    inputs=[
+        gr.Textbox(lines=2, placeholder="Enter a text prompt here...", label="Prompt"), 
+        gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Number of Cycles")
+    ],
+    outputs=gr.Gallery(label="Generated Images"),
     title="Text-to-Image Generation",
-    description="Enter a text prompt to generate an upscaled image using Stable Diffusion 1.5.",
+    description="Enter a text prompt to generate images using Stable Diffusion. Specify the number of cycles to generate multiple images.",
 )
 
 # Launch the web application
 if __name__ == "__main__":
-    iface.launch()
+    iface.launch(share=True)
