@@ -4,6 +4,7 @@ import torch
 from datetime import datetime
 import asyncio
 from PIL import Image
+import numpy as np
 
 # Load the pre-trained Stable Diffusion model
 model_id = "CompVis/stable-diffusion-v1-4"
@@ -15,29 +16,36 @@ pipe = pipe.to(device)
 async def generate_images(prompt, cycles, width, height):
     images = []
     for cycle in range(cycles):
-        # Generate an image
-        result = await asyncio.to_thread(pipe, prompt)
-        image = result.images[0]
-        
-        # Upscale the image
-        image = upscale_image(image, width, height)
-        
-        # Generate output file path with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = f"generated_image_{timestamp}_{cycle}.png"
-        
-        # Save the generated image
-        await asyncio.to_thread(image.save, output_path)
-        
-        images.append(image)
+        try:
+            # Generate an image
+            result = await asyncio.to_thread(pipe, prompt)
+            image = result.images[0]
+            
+            # Upscale the image
+            image = upscale_image(image, width, height)
+            
+            # Generate output file path with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = f"generated_image_{timestamp}_{cycle}.png"
+            
+            # Save the generated image
+            await asyncio.to_thread(image.save, output_path)
+            
+            images.append(image)
+        except Exception as e:
+            print(f"Error during image generation or upscaling: {e}")
+            continue
         
     return images
 
 def upscale_image(image, width, height):
-    # Upscale using bicubic interpolation
-    upscaled_img = image.resize((width, height), Image.BICUBIC)
-    
-    return upscaled_img
+    try:
+        # Upscale using bicubic interpolation
+        upscaled_img = image.resize((width, height), Image.BICUBIC)
+        return upscaled_img
+    except Exception as e:
+        print(f"Error during upscaling: {e}")
+        return image
 
 def generate_image_sync(prompt, cycles, width, height):
     # Run the asynchronous function in an event loop
@@ -47,14 +55,14 @@ def generate_image_sync(prompt, cycles, width, height):
 iface = gr.Interface(
     fn=generate_image_sync,
     inputs=[
-        gr.Textbox(lines=2, placeholder="Enter a text prompt here...", label="Prompt"), 
+        gr.Textbox(lines=2, placeholder="Enter a text prompt here...", label="Prompt", value="A scenic landscape with mountains"),
         gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Number of Cycles"),
         gr.Number(label="Width", value=640),
         gr.Number(label="Height", value=480),
     ],
     outputs=gr.Gallery(label="Generated Images"),
     title="Text-to-Image Generation with Custom Resolution",
-    description="Enter a text prompt to generate images using Stable Diffusion. Specify the number of cycles to generate multiple images and the desired resolution.",
+    description="Enter a text prompt to generate images using Stable Diffusion. Specify the number of cycles to generate multiple images and the desired resolution."
 )
 
 # Launch the web application
