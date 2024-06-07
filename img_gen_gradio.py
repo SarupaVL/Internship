@@ -2,33 +2,40 @@ import gradio as gr
 from diffusers import StableDiffusionPipeline
 import torch
 from datetime import datetime
+import asyncio
 
 # Load the pre-trained Stable Diffusion model
 model_id = "CompVis/stable-diffusion-v1-4"
-device = "cpu"  # Use CPU
+device = "cuda" if torch.cuda.is_available() else "cpu"  # Use GPU if available, otherwise CPU
 
 pipe = StableDiffusionPipeline.from_pretrained(model_id)
 pipe = pipe.to(device)
 
-def generate_image(prompt, cycles):
+async def generate_images(prompt, cycles):
     images = []
     for cycle in range(cycles):
         # Generate an image
-        image = pipe(prompt).images[0]
+        result = await asyncio.to_thread(pipe, prompt)
+        image = result.images[0]
         
         # Generate output file path with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = f"generated_image_{timestamp}_{cycle}.png"
         
         # Save the generated image
-        image.save(output_path)
+        await asyncio.to_thread(image.save, output_path)
         
         images.append(image)
-        yield images  # Update the interface in real-time
+        
+    return images
+
+def generate_image_sync(prompt, cycles):
+    # Run the asynchronous function in an event loop
+    return asyncio.run(generate_images(prompt, cycles))
 
 # Create Gradio interface
 iface = gr.Interface(
-    fn=generate_image,
+    fn=generate_image_sync,
     inputs=[
         gr.Textbox(lines=2, placeholder="Enter a text prompt here...", label="Prompt"), 
         gr.Slider(minimum=1, maximum=10, step=1, value=1, label="Number of Cycles")
