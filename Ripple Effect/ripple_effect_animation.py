@@ -5,7 +5,7 @@ import imageio
 
 def create_final_concentric_circles(input_path, output_dir, initial_step_size=5, max_step_size=20, step_increment=1, num_points=360, scale_factor=2):
     # Load the image
-    image = Image.open(input_path).convert("L")  # Convert to grayscale
+    image = Image.open(input_path).convert("RGB")  # Convert to RGB
 
     # Get the size of the image and scale it
     width, height = image.size
@@ -25,7 +25,7 @@ def create_final_concentric_circles(input_path, output_dir, initial_step_size=5,
 
     while current_step_size <= max_step_size:
         # Create a new image for each step with increased resolution
-        output_image = Image.new("L", (width, height), 255)  # White background
+        output_image = Image.new("RGB", (width, height), (255, 255, 255))  # White background
         draw = ImageDraw.Draw(output_image)
 
         max_radius = int(math.hypot(center_x, center_y))  # Distance from center to the farthest corner
@@ -37,13 +37,14 @@ def create_final_concentric_circles(input_path, output_dir, initial_step_size=5,
                 y = int(center_y + radius * math.sin(angle))
                 
                 if 0 <= x < width and 0 <= y < height:
-                    intensity = image.getpixel((x // scale_factor, y // scale_factor))
+                    r, g, b = image.getpixel((x // scale_factor, y // scale_factor))
+                    intensity = (r + g + b) // 3  # Average intensity
                     thickness = max(1, int((225 - intensity) / 225 * current_step_size))
                     next_angle = ((i + 1) / num_points) * 2 * math.pi
                     next_x = int(center_x + radius * math.cos(next_angle))
                     next_y = int(center_y + radius * math.sin(next_angle))
                     
-                    draw.line([x, y, next_x, next_y], fill=0, width=thickness)
+                    draw.line([x, y, next_x, next_y], fill=(r, g, b), width=thickness)
 
         # Save the final image for the current step size
         output_image_path = os.path.join(output_dir, f"step_{step_counter:04d}.jpg")
@@ -79,7 +80,7 @@ def main():
         print(f"Final images created with initial step size {initial_step_size}, max step size {max_step_size}, step increment {step_increment}, and scale factor {scale_factor}.")
         
         # Create MP4
-        output_mp4_path = f"C:\\Users\\laksh\\Dropbox\\My PC (LAPTOP-6UJV2OF2)\\Downloads\\internship projects\\ffface_step_{initial_step_size}_to_{max_step_size}_increment_{step_increment}_scale_{scale_factor}.mp4"
+        output_mp4_path = f"C:\\Users\\laksh\\Dropbox\\My PC (LAPTOP-6UJV2OF2)\\Downloads\\internship projects\\faaace_step_{initial_step_size}_to_{max_step_size}_increment_{step_increment}_scale_{scale_factor}.mp4"
         create_mp4(output_dir, output_mp4_path)
         print(f"MP4 created: {output_mp4_path}")
     except ValueError:
