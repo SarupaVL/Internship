@@ -5,7 +5,7 @@ import imageio.v2 as imageio
 import gradio as gr
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 
-def create_concentric_circles_frames(image, output_dir, initial_step_size=5, max_step_size=20, step_increment=1, num_points=360, scale_factor=2):
+def create_concentric_circles_frames(image, output_dir, initial_step_size=5, max_step_size=20, step_increment=1, num_points=360, scale_factor=2, grayscale=False, line_thickness=1):
     image = image.convert("RGB")
     width, height = image.size
     width *= scale_factor
@@ -30,8 +30,10 @@ def create_concentric_circles_frames(image, output_dir, initial_step_size=5, max
 
                 if 0 <= x < width and 0 <= y < height:
                     r, g, b = image.getpixel((x // scale_factor, y // scale_factor))
-                    intensity = (r + g + b) // 3
-                    thickness = max(1, int((225 - intensity) / 225 * current_step_size))
+                    if grayscale:
+                        intensity = (r + g + b) // 3
+                        r, g, b = intensity, intensity, intensity
+                    thickness = max(line_thickness, int((225 - ((r + g + b) // 3)) / 225 * current_step_size))
                     next_angle = ((i + 1) / num_points) * 2 * math.pi
                     next_x = int(center_x + radius * math.cos(next_angle))
                     next_y = int(center_y + radius * math.sin(next_angle))
@@ -45,11 +47,11 @@ def create_concentric_circles_frames(image, output_dir, initial_step_size=5, max
 
     return frames
 
-def create_animation(images, output_dir, initial_step_size, max_step_size, step_increment, scale_factor, fps=10):
+def create_animation(images, output_dir, initial_step_size, max_step_size, step_increment, scale_factor, grayscale, line_thickness, fps=10):
     video_files = []
     for i, image_path in enumerate(images):
         image = Image.open(image_path)
-        frames = create_concentric_circles_frames(image, output_dir, initial_step_size, max_step_size, step_increment, scale_factor=scale_factor)
+        frames = create_concentric_circles_frames(image, output_dir, initial_step_size, max_step_size, step_increment, scale_factor=scale_factor, grayscale=grayscale, line_thickness=line_thickness)
         output_video_path = os.path.join(output_dir, f"concentric_circles_{i:04d}.mp4")
         imageio.mimsave(output_video_path, frames, fps=fps)
         video_files.append(output_video_path)
@@ -70,12 +72,12 @@ def add_audio_to_video(video_path, audio_path, output_path):
     video_with_audio.write_videofile(output_path, codec='libx264')
     print(f"Video with audio saved: {output_path}")
 
-def process_images(images, initial_step_size, max_step_size, step_increment, scale_factor, audio_file):
+def process_images(images, initial_step_size, max_step_size, step_increment, scale_factor, grayscale, line_thickness, audio_file):
     output_dir = "concentric_circle_frames"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    video_files = create_animation(images, output_dir, initial_step_size, max_step_size, step_increment, scale_factor)
+    video_files = create_animation(images, output_dir, initial_step_size, max_step_size, step_increment, scale_factor, grayscale, line_thickness)
     concatenated_video_path = "concatenated_animation.mp4"
     concatenate_videos(video_files, concatenated_video_path)
 
@@ -92,6 +94,8 @@ iface = gr.Interface(
         gr.Number(label="Max Step Size"),
         gr.Number(label="Step Increment"),
         gr.Number(label="Scale Factor"),
+        gr.Checkbox(label="Grayscale"),
+        gr.Number(label="Line Thickness"),
         gr.File(label="Upload Audio", type="filepath")
     ],
     outputs=gr.Video(label="Final Animation with Audio"),
